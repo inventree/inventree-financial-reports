@@ -162,7 +162,7 @@ class MonthlyPurchasingTest(InvenTreeTestCase):
         data = response.data
 
         self.assertEqual(data["total"], 222)
-        self.assertEqual(data["previous_month_total"], 30)
+        self.assertEqual(data["previous_total"], 30)
         self.assertEqual(data["last_year_total"], 120)
         self.assertEqual(data["average"], round(150 / 12, 2))
         self.assertEqual(len(data["history"]), 12)

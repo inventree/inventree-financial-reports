@@ -201,15 +201,15 @@ class MonthlySalesTest(InvenTreeTestCase):
 
         self.assertEqual(data["currency"], "USD")
         self.assertEqual(data["total"], 195)
-        self.assertEqual(data["previous_month_total"], 54)
+        self.assertEqual(data["previous_total"], 54)
         self.assertEqual(data["last_year_total"], 100)
         # Average of the 12 months *before* June 2025 (excludes Order 7)
         self.assertEqual(data["average"], round(154 / 12, 2))
 
         history = data["history"]
         self.assertEqual(len(history), 12)
-        self.assertEqual(history[0]["month"], "2024-07")
-        self.assertEqual(history[-1], {"month": "2025-06", "total": 195})
+        self.assertEqual(history[0]["start"], "2024-07")
+        self.assertEqual(history[-1], {"start": "2025-06", "total": 195})
 
         self.assertEqual(
             [(r["name"], r["total"]) for r in data["by_company"]],
@@ -223,9 +223,64 @@ class MonthlySalesTest(InvenTreeTestCase):
         self.assertEqual(data["warnings"]["missing_rates"], ["JPY"])
         self.assertEqual(data["warnings"]["unpriced_lines"], 1)
 
+    def test_period_start(self):
+        """Dates are normalised to the start of their calendar period."""
+        self.assertEqual(sales.period_start(D(2025, 6, 17), "month"), D(2025, 6, 1))
+        self.assertEqual(sales.period_start(D(2025, 6, 17), "quarter"), D(2025, 4, 1))
+        self.assertEqual(sales.period_start(D(2025, 12, 1), "quarter"), D(2025, 10, 1))
+        self.assertEqual(sales.period_start(D(2025, 6, 17), "year"), D(2025, 1, 1))
+
+    def test_api_quarter(self):
+        """Quarterly report for Q2 2025 (any month in the quarter selects it)."""
+        response = self.get_response(period="quarter", year=2025, month=5)
+        self.assertEqual(response.status_code, 200, response.data)
+
+        data = response.data
+
+        self.assertEqual((data["year"], data["month"]), (2025, 4))
+        # Q2 2025: June (195) + May (54)
+        self.assertEqual(data["total"], 249)
+        # Q1 2025
+        self.assertEqual(data["previous_total"], 0)
+        # Q2 2024: June 2024 (100) + May 2024 (5000)
+        self.assertEqual(data["last_year_total"], 5100)
+        # Average of the 8 quarters before Q2 2025 (Q2 2023 - Q1 2025)
+        self.assertEqual(data["average_periods"], 8)
+        self.assertEqual(data["average"], round(5100 / 8, 2))
+
+        history = data["history"]
+        self.assertEqual(len(history), 8)
+        self.assertEqual(history[0]["start"], "2023-07")
+        self.assertEqual(history[-1], {"start": "2025-04", "total": 249})
+
+        self.assertEqual(
+            [(r["name"], r["total"]) for r in data["by_company"]],
+            [("Customer A", 169), ("Customer B", 80)],
+        )
+
+    def test_api_year(self):
+        """Yearly report for 2025."""
+        response = self.get_response(period="year", year=2025, month=6)
+        self.assertEqual(response.status_code, 200, response.data)
+
+        data = response.data
+
+        self.assertEqual((data["year"], data["month"]), (2025, 1))
+        self.assertEqual(data["total"], 249)
+        self.assertEqual(data["previous_total"], 5100)
+        # Same as the previous period for yearly reports, so not provided
+        self.assertIsNone(data["last_year_total"])
+        # Average of the 5 years before 2025 (2020 - 2024)
+        self.assertEqual(data["average"], round(5100 / 5, 2))
+        self.assertEqual(
+            [h["start"] for h in data["history"]],
+            ["2021-01", "2022-01", "2023-01", "2024-01", "2025-01"],
+        )
+
     def test_api_validation(self):
         """Invalid or future months are rejected."""
         self.assertEqual(self.get_response(year=2025, month=13).status_code, 400)
+        self.assertEqual(self.get_response(period="week").status_code, 400)
 
         future = sales.add_months(datetime.date.today(), 2)
         response = self.get_response(year=future.year, month=future.month)

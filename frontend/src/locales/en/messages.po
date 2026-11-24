@@ -18,24 +18,75 @@ msgstr ""
 #~ msgstr "Click a bar to view that month"
 
 #: src/MonthlyReportPanel.tsx
-msgid "Error"
-msgstr "Error"
+#~ msgid "Monthly average (previous 12 months)"
+#~ msgstr "Monthly average (previous 12 months)"
 
 #: src/MonthlyReportPanel.tsx
-msgid "Monthly average (previous 12 months)"
-msgstr "Monthly average (previous 12 months)"
+#~ msgid "Last 12 months"
+#~ msgstr "Last 12 months"
 
 #: src/MonthlyReportPanel.tsx
-msgid "Last 12 months"
-msgstr "Last 12 months"
+#~ msgid "12 month average"
+#~ msgstr "12 month average"
+
+#: src/MonthlyReportPanel.tsx
+#: src/components/PeriodNavigator.tsx
+msgid "This quarter"
+msgstr "This quarter"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Quarterly average (previous {count} quarters)"
+msgstr "Quarterly average (previous {count} quarters)"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Last {count} quarters"
+msgstr "Last {count} quarters"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Click the chart to view that quarter"
+msgstr "Click the chart to view that quarter"
+
+#: src/MonthlyReportPanel.tsx
+#: src/components/PeriodNavigator.tsx
+msgid "This year"
+msgstr "This year"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Yearly average (previous {count} years)"
+msgstr "Yearly average (previous {count} years)"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Last {count} years"
+msgstr "Last {count} years"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Click the chart to view that year"
+msgstr "Click the chart to view that year"
+
+#: src/MonthlyReportPanel.tsx
+#: src/components/PeriodNavigator.tsx
+msgid "This month"
+msgstr "This month"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Monthly average (previous {count} months)"
+msgstr "Monthly average (previous {count} months)"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Last {count} months"
+msgstr "Last {count} months"
 
 #: src/MonthlyReportPanel.tsx
 msgid "Click the chart to view that month"
 msgstr "Click the chart to view that month"
 
 #: src/MonthlyReportPanel.tsx
-msgid "12 month average"
-msgstr "12 month average"
+msgid "Error"
+msgstr "Error"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Average"
+msgstr "Average"
 
 #: src/MonthlySalesPanel.tsx
 #~ msgid "Sales by customer"
@@ -70,6 +121,22 @@ msgstr "12 month average"
 #~ msgstr "Fallback locale is used if no translation is available"
 
 #: src/Panels.tsx
+#~ msgid "Shipped items without a sale price this month: {count}"
+#~ msgstr "Shipped items without a sale price this month: {count}"
+
+#: src/Panels.tsx
+#~ msgid "No sales this month"
+#~ msgstr "No sales this month"
+
+#: src/Panels.tsx
+#~ msgid "Order lines without a purchase price this month: {count}"
+#~ msgstr "Order lines without a purchase price this month: {count}"
+
+#: src/Panels.tsx
+#~ msgid "No purchases this month"
+#~ msgstr "No purchases this month"
+
+#: src/Panels.tsx
 msgid "Total sales"
 msgstr "Total sales"
 
@@ -90,8 +157,8 @@ msgid "Some sales are excluded from these totals"
 msgstr "Some sales are excluded from these totals"
 
 #: src/Panels.tsx
-msgid "Shipped items without a sale price this month: {count}"
-msgstr "Shipped items without a sale price this month: {count}"
+msgid "Shipped items without a sale price in this period: {count}"
+msgstr "Shipped items without a sale price in this period: {count}"
 
 #: src/Panels.tsx
 msgid "Sales by Customer"
@@ -102,8 +169,8 @@ msgid "Sales by Product"
 msgstr "Sales by Product"
 
 #: src/Panels.tsx
-msgid "No sales this month"
-msgstr "No sales this month"
+msgid "No sales in this period"
+msgstr "No sales in this period"
 
 #: src/Panels.tsx
 msgid "No customer"
@@ -134,8 +201,8 @@ msgid "Some purchases are excluded from these totals"
 msgstr "Some purchases are excluded from these totals"
 
 #: src/Panels.tsx
-msgid "Order lines without a purchase price this month: {count}"
-msgstr "Order lines without a purchase price this month: {count}"
+msgid "Order lines without a purchase price in this period: {count}"
+msgstr "Order lines without a purchase price in this period: {count}"
 
 #: src/Panels.tsx
 msgid "Purchases by Supplier"
@@ -146,8 +213,8 @@ msgid "Purchases by Part"
 msgstr "Purchases by Part"
 
 #: src/Panels.tsx
-msgid "No purchases this month"
-msgstr "No purchases this month"
+msgid "No purchases in this period"
+msgstr "No purchases in this period"
 
 #: src/Panels.tsx
 msgid "No supplier"
@@ -169,27 +236,66 @@ msgstr "Number of items to show"
 msgid "All"
 msgstr "All"
 
-#: src/components/ComparisonStat.tsx
-#: src/components/MonthNavigator.tsx
-msgid "This month"
-msgstr "This month"
-
 #: src/components/ExclusionWarning.tsx
 msgid "No exchange rate available for:"
 msgstr "No exchange rate available for:"
 
 #: src/components/MonthNavigator.tsx
+#~ msgid "Select month"
+#~ msgstr "Select month"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Previous quarter"
+msgstr "Previous quarter"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Next quarter"
+msgstr "Next quarter"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Quarter to date"
+msgstr "Quarter to date"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Previous year"
+msgstr "Previous year"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Next year"
+msgstr "Next year"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Year to date"
+msgstr "Year to date"
+
+#: src/components/PeriodNavigator.tsx
 msgid "Previous month"
 msgstr "Previous month"
 
-#: src/components/MonthNavigator.tsx
-msgid "Select month"
-msgstr "Select month"
-
-#: src/components/MonthNavigator.tsx
+#: src/components/PeriodNavigator.tsx
 msgid "Next month"
 msgstr "Next month"
 
-#: src/components/MonthNavigator.tsx
+#: src/components/PeriodNavigator.tsx
 msgid "Month to date"
 msgstr "Month to date"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Select period"
+msgstr "Select period"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Monthly"
+msgstr "Monthly"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Quarterly"
+msgstr "Quarterly"
+
+#: src/components/PeriodNavigator.tsx
+msgid "Yearly"
+msgstr "Yearly"
+
+#: src/periods.ts
+msgid "Q{quarter} {year}"
+msgstr "Q{quarter} {year}"

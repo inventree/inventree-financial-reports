@@ -1,4 +1,3 @@
-import { t } from '@lingui/core/macro';
 import { Group, Stack, Text } from '@mantine/core';
 import { IconArrowDownRight, IconArrowUpRight } from '@tabler/icons-react';
 
@@ -48,11 +47,14 @@ export function HeadlineStat({
  */
 export function ComparisonStat({
   label,
+  currentLabel,
   value,
   reference,
   format
 }: {
   label: string;
+  // Name for the selected period in the change text, e.g. "This month"
+  currentLabel: string;
   value: number;
   reference: number;
   format: (value: number) => string;
@@ -75,7 +77,7 @@ export function ComparisonStat({
             <IconArrowDownRight size={16} />
           )}
           <Text size='sm'>
-            {t`This month`} {change >= 0 ? '+' : ''}
+            {currentLabel} {change >= 0 ? '+' : ''}
             {change.toFixed(1)}%
           </Text>
         </Group>

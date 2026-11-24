@@ -50,6 +50,24 @@ def add_months(date: datetime.date, months: int) -> datetime.date:
     return datetime.date(index // 12, index % 12 + 1, 1)
 
 
+# Reporting periods: length in months
+PERIOD_MONTH = "month"
+PERIOD_QUARTER = "quarter"
+PERIOD_YEAR = "year"
+
+PERIOD_MONTHS = {PERIOD_MONTH: 1, PERIOD_QUARTER: 3, PERIOD_YEAR: 12}
+
+# Number of periods shown in the history chart (and averaged over)
+PERIOD_HISTORY = {PERIOD_MONTH: 12, PERIOD_QUARTER: 8, PERIOD_YEAR: 5}
+
+
+def period_start(date: datetime.date, period: str) -> datetime.date:
+    """Return the first day of the calendar period containing the given date."""
+    length = PERIOD_MONTHS[period]
+    month = (date.month - 1) // length * length + 1
+    return datetime.date(date.year, month, 1)
+
+
 def _line_value(quantity: str, price: str, discount: str) -> ExpressionWrapper:
     """Database expression for: quantity x price x (100 - discount) / 100."""
     return ExpressionWrapper(
