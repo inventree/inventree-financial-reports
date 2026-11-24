@@ -209,7 +209,15 @@ class MonthlySalesTest(InvenTreeTestCase):
         history = data["history"]
         self.assertEqual(len(history), 12)
         self.assertEqual(history[0]["start"], "2024-07")
-        self.assertEqual(history[-1], {"start": "2025-06", "total": 195})
+        # June 2025: orders 1, 2, 4 (unpriced) and 5 (no exchange rate) - the
+        # cancelled order is not counted
+        self.assertEqual(
+            history[-1], {"start": "2025-06", "total": 195, "orders": 4}
+        )
+        # May 2025: order 1
+        self.assertEqual(history[-2]["orders"], 1)
+        # 12 months before June 2025: order 6 (June 2024) and order 1 (May 2025)
+        self.assertEqual(data["average_orders"], round(2 / 12, 2))
 
         self.assertEqual(
             [(r["name"], r["total"]) for r in data["by_company"]],
@@ -251,7 +259,12 @@ class MonthlySalesTest(InvenTreeTestCase):
         history = data["history"]
         self.assertEqual(len(history), 8)
         self.assertEqual(history[0]["start"], "2023-07")
-        self.assertEqual(history[-1], {"start": "2025-04", "total": 249})
+        # Order 1 shipped in both May and June, but is counted once
+        self.assertEqual(
+            history[-1], {"start": "2025-04", "total": 249, "orders": 4}
+        )
+        # Q2 2024: orders 6 and 7
+        self.assertEqual(data["average_orders"], round(2 / 8, 2))
 
         self.assertEqual(
             [(r["name"], r["total"]) for r in data["by_company"]],

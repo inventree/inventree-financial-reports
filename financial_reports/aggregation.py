@@ -94,6 +94,7 @@ class RowSource:
         discount: str,
         company: str,
         status: str,
+        order: str,
         part: str | None = None,
     ):
         """Store the field paths for this source."""
@@ -103,6 +104,7 @@ class RowSource:
         self.discount = discount
         self.company = company
         self.status = status
+        self.order = order
         self.part = part
 
 
@@ -256,6 +258,33 @@ class OrderValueAggregator:
         """Total value over the date range."""
         return self._aggregate(None).get(None, Decimal(0))
 
+    def monthly_orders(self) -> dict[datetime.date, set[int]]:
+        """Distinct orders with counted rows (priced or not) in each month.
+
+        Returned as sets of order IDs, so that counts for longer periods can be
+        calculated without double-counting orders which span several months.
+        """
+        result: dict[datetime.date, set[int]] = {}
+
+        for queryset, source in (
+            (self.counted_lines(), self.line_source),
+            (self._filter(self.extra_lines(), self.extra_source), self.extra_source),
+        ):
+            pairs = (
+                queryset.annotate(_month=TruncMonth(source.date))
+                .values_list("_month", source.order)
+                .distinct()
+                .order_by()
+            )
+
+            for month, order in pairs:
+                # TruncMonth may return a datetime on some database backends
+                if isinstance(month, datetime.datetime):
+                    month = month.date()
+                result.setdefault(month, set()).add(order)
+
+        return result
+
     def monthly_totals(self) -> dict[datetime.date, Decimal]:
         """Total value for each month in the range.
 
@@ -297,6 +326,7 @@ class SalesAggregator(OrderValueAggregator):
         price="line__sale_price",
         discount="line__discount",
         company="line__order__customer",
+        order="line__order",
         part="line__part",
         status="line__order__status",
     )
@@ -307,6 +337,7 @@ class SalesAggregator(OrderValueAggregator):
         price="price",
         discount="discount",
         company="order__customer",
+        order="order",
         status="order__status",
     )
 
@@ -339,6 +370,7 @@ class PurchaseAggregator(OrderValueAggregator):
         price="purchase_price",
         discount="discount",
         company="order__supplier",
+        order="order",
         # Group by the internal part (via the supplier part)
         part="part__part",
         status="order__status",
@@ -350,6 +382,7 @@ class PurchaseAggregator(OrderValueAggregator):
         price="price",
         discount="discount",
         company="order__supplier",
+        order="order",
         status="order__status",
     )
 
