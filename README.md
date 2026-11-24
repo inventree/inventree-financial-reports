@@ -1,3 +1,7 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI](https://img.shields.io/pypi/v/inventree-financial-reports)](https://pypi.org/project/inventree-financial-reports/)
+[![CI](https://github.com/inventree/inventree-financial-reports/actions/workflows/ci.yaml/badge.svg)](https://github.com/inventree/inventree-financial-reports/actions/workflows/ci.yaml)
+
 # Financial Reports
 
 An [InvenTree](https://inventree.org) plugin that adds monthly financial summaries for sales and purchasing.
