@@ -5,7 +5,7 @@ import {
   ModelType
 } from '@inventreedb/ui';
 import { t } from '@lingui/core/macro';
-import { BarChart } from '@mantine/charts';
+import { LineChart } from '@mantine/charts';
 import {
   Alert,
   Box,
@@ -145,6 +145,8 @@ export function MonthlyReportPanel({
 
   const selectedKey = monthKey(selected);
 
+  const selectedPoint = chartData.find((entry) => entry.key === selectedKey);
+
   const navigateTo = (model: ModelType) => (pk: number) => {
     context.navigate(getDetailUrl(model, pk));
   };
@@ -212,23 +214,39 @@ export function MonthlyReportPanel({
                 <Group justify='space-between'>
                   <Title order={5}>{t`Last 12 months`}</Title>
                   <Text size='xs' c='dimmed'>
-                    {t`Click a bar to view that month`}
+                    {t`Click the chart to view that month`}
                   </Text>
                 </Group>
-                <BarChart
+                <LineChart
                   h={280}
                   data={chartData}
                   dataKey='label'
                   series={[
                     { name: 'total', label: labels.series, color: 'blue.6' }
                   ]}
-                  getBarColor={(_value, entry: any) =>
-                    entry?.key === selectedKey ? 'blue.7' : 'blue.3'
-                  }
+                  curveType='linear'
+                  strokeWidth={2}
+                  dotProps={{ r: 4 }}
+                  activeDotProps={{ r: 5 }}
                   valueFormatter={formatMoney}
                   gridAxis='y'
                   tickLine='none'
-                  maxBarWidth={40}
+                  // Highlight the selected month
+                  referenceDots={
+                    selectedPoint
+                      ? [
+                          {
+                            x: selectedPoint.label,
+                            y: selectedPoint.total,
+                            r: 7,
+                            color: 'blue.8',
+                            stroke: 'var(--mantine-color-body)',
+                            strokeWidth: 2,
+                            ifOverflow: 'extendDomain'
+                          }
+                        ]
+                      : []
+                  }
                   referenceLines={[
                     {
                       y: data.average,
@@ -238,11 +256,12 @@ export function MonthlyReportPanel({
                       strokeDasharray: '4 4'
                     }
                   ]}
-                  barProps={{
-                    radius: [4, 4, 0, 0],
-                    cursor: 'pointer',
-                    onClick: (entry: any) => {
-                      const key = entry?.payload?.key ?? entry?.key;
+                  // Clicking anywhere in a month's column selects that month
+                  lineChartProps={{
+                    style: { cursor: 'pointer' },
+                    onClick: (state) => {
+                      const index = Number(state?.activeIndex);
+                      const key = chartData[index]?.key;
                       if (key) {
                         setSelected(parseMonthKey(key));
                       }
