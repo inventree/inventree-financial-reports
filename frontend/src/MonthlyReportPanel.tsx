@@ -13,6 +13,7 @@ import {
   Group,
   LoadingOverlay,
   Paper,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Text,
@@ -52,8 +53,10 @@ type MonthlyReportData = {
   average: number;
   // Number of preceding periods in the average
   average_periods: number;
+  // Average number of orders in the preceding periods
+  average_orders: number;
   // Each period is identified by its first month ('YYYY-MM')
-  history: { start: string; total: number }[];
+  history: { start: string; total: number; orders: number }[];
   by_company: BreakdownRow[];
   by_part: BreakdownRow[];
   warnings: {
@@ -71,8 +74,10 @@ export type MonthlyReportLabels = {
   total: string;
   // What the totals represent, e.g. "Value of goods shipped"
   basis: string;
-  // Bar chart series name, e.g. "Sales"
+  // Chart series name for the value, e.g. "Sales"
   series: string;
+  // Chart series name for the order count, e.g. "Orders shipped"
+  orders: string;
   loadError: string;
   // Title of the exclusion warning
   excluded: string;
@@ -86,6 +91,9 @@ export type MonthlyReportLabels = {
   noCompany: string;
   noPart: string;
 };
+
+// Values which can be shown in the history chart (keys of the chart data)
+type ChartMetric = 'total' | 'orders';
 
 /**
  * Period-specific text for the report body
@@ -133,6 +141,9 @@ export function MonthlyReportPanel({
   // Selected month - the report covers the period which contains it
   const [selected, setSelected] = useState<YearMonth>(currentMonth());
   const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
+
+  // What the history chart displays
+  const [chartMetric, setChartMetric] = useState<ChartMetric>('total');
   const [data, setData] = useState<MonthlyReportData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
@@ -177,6 +188,12 @@ export function MonthlyReportPanel({
       digits: 0
     })}`;
 
+  const showOrders = chartMetric === 'orders';
+
+  // Order counts are whole numbers (averages may not be)
+  const formatCount = (value: number) =>
+    new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value);
+
   // Describe the data with the period it was fetched for (the selection may
   // already have changed while the next report loads)
   const dataPeriod: Period = data?.period ?? period;
@@ -196,7 +213,8 @@ export function MonthlyReportPanel({
           locale,
           true
         ),
-        total: entry.total
+        total: entry.total,
+        orders: entry.orders
       })) ?? [],
     [data, locale]
   );
@@ -296,22 +314,38 @@ export function MonthlyReportPanel({
               <Stack gap='sm'>
                 <Group justify='space-between'>
                   <Title order={5}>{text.history}</Title>
-                  <Text size='xs' c='dimmed'>
-                    {text.click}
-                  </Text>
+                  <Group gap='sm'>
+                    <Text size='xs' c='dimmed'>
+                      {text.click}
+                    </Text>
+                    <SegmentedControl
+                      size='xs'
+                      value={chartMetric}
+                      onChange={(value) => setChartMetric(value as ChartMetric)}
+                      data={[
+                        { value: 'total', label: t`Value` },
+                        { value: 'orders', label: t`Orders` }
+                      ]}
+                    />
+                  </Group>
                 </Group>
                 <LineChart
                   h={280}
                   data={chartData}
                   dataKey='label'
                   series={[
-                    { name: 'total', label: labels.series, color: 'blue.6' }
+                    {
+                      name: chartMetric,
+                      label: showOrders ? labels.orders : labels.series,
+                      color: 'blue.6'
+                    }
                   ]}
                   curveType='linear'
                   strokeWidth={2}
                   dotProps={{ r: 4 }}
                   activeDotProps={{ r: 5 }}
-                  valueFormatter={formatMoney}
+                  valueFormatter={showOrders ? formatCount : formatMoney}
+                  yAxisProps={{ allowDecimals: !showOrders }}
                   gridAxis='y'
                   tickLine='none'
                   // Highlight the selected period
@@ -320,7 +354,7 @@ export function MonthlyReportPanel({
                       ? [
                           {
                             x: selectedPoint.label,
-                            y: selectedPoint.total,
+                            y: selectedPoint[chartMetric],
                             r: 7,
                             color: 'blue.8',
                             stroke: 'var(--mantine-color-body)',
@@ -332,7 +366,7 @@ export function MonthlyReportPanel({
                   }
                   referenceLines={[
                     {
-                      y: data.average,
+                      y: showOrders ? data.average_orders : data.average,
                       color: 'gray.6',
                       label: t`Average`,
                       labelPosition: 'insideTopLeft',

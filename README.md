@@ -10,7 +10,7 @@ Each report appears as a panel on the relevant InvenTree page and shows:
 
 - The total value for a selected month, quarter or year, converted to your default currency
 - Comparisons with the average of recent periods, the previous period and the same period last year
-- A line chart of recent periods
+- A line chart of recent periods, showing either value or number of orders
 - Breakdowns by company and by part, as pie charts with value tables
 
 ## Reports
@@ -57,6 +57,7 @@ Breakdowns are **Purchases by Supplier** and **Purchases by Part**. Parts are gr
 - Choose **Monthly**, **Quarterly** or **Yearly** in the top bar (monthly is the default). Switching keeps your place, e.g. June 2025 becomes Q2 2025, then 2025.
 - Use the arrows to step between periods, or the calendar button to pick a month (or a year, in yearly mode) directly. Future periods cannot be selected.
 - Click the chart to jump to that period.
+- Use the **Value / Orders** toggle above the chart to show either the total value or the number of orders in each period. For sales this counts orders with goods shipped in the period; for purchasing, orders placed. An order shipped across several months is counted once in a quarter or year.
 - Each pie chart shows the top 10 entries by default and groups the rest as "Other". Use the **10 / 20 / 50 / All** selector to show more. The first 10 slices have distinct colours; further slices are grey and can be identified by hovering or from the table.
 - Click a customer, supplier or part name in a table to open its page.
 

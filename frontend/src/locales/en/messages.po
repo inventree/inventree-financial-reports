@@ -85,6 +85,14 @@ msgid "Error"
 msgstr "Error"
 
 #: src/MonthlyReportPanel.tsx
+msgid "Value"
+msgstr "Value"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Orders"
+msgstr "Orders"
+
+#: src/MonthlyReportPanel.tsx
 msgid "Average"
 msgstr "Average"
 
@@ -149,6 +157,10 @@ msgid "Sales"
 msgstr "Sales"
 
 #: src/Panels.tsx
+msgid "Orders shipped"
+msgstr "Orders shipped"
+
+#: src/Panels.tsx
 msgid "Failed to load sales data from the server"
 msgstr "Failed to load sales data from the server"
 
@@ -191,6 +203,10 @@ msgstr "Value of orders placed"
 #: src/Panels.tsx
 msgid "Purchases"
 msgstr "Purchases"
+
+#: src/Panels.tsx
+msgid "Orders placed"
+msgstr "Orders placed"
 
 #: src/Panels.tsx
 msgid "Failed to load purchasing data from the server"

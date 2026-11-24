@@ -19,6 +19,7 @@ function MonthlySalesReport({ context }: { context: InvenTreePluginContext }) {
     total: t`Total sales`,
     basis: t`Value of goods shipped`,
     series: t`Sales`,
+    orders: t`Orders shipped`,
     loadError: t`Failed to load sales data from the server`,
     excluded: t`Some sales are excluded from these totals`,
     unpriced: (count) =>
@@ -42,6 +43,7 @@ function MonthlyPurchasingReport({
     total: t`Total purchases`,
     basis: t`Value of orders placed`,
     series: t`Purchases`,
+    orders: t`Orders placed`,
     loadError: t`Failed to load purchasing data from the server`,
     excluded: t`Some purchases are excluded from these totals`,
     unpriced: (count) =>

@@ -166,6 +166,10 @@ class MonthlyPurchasingTest(InvenTreeTestCase):
         self.assertEqual(data["last_year_total"], 120)
         self.assertEqual(data["average"], round(150 / 12, 2))
         self.assertEqual(len(data["history"]), 12)
+        # June 2025: PO1, PO2, PO5 (not the cancelled or unplaced orders)
+        self.assertEqual(data["history"][-1]["orders"], 3)
+        # 12 months before June 2025: PO7 (June 2024) and PO6 (May 2025)
+        self.assertEqual(data["average_orders"], round(2 / 12, 2))
 
         self.assertEqual(
             [(r["name"], r["total"]) for r in data["by_company"]],

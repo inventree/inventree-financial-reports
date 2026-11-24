@@ -51,9 +51,10 @@ class MonthlyReportView(APIView):
 
     Query parameters select a calendar month, quarter or year. Returns:
     - Total value for the selected period (in the default currency)
-    - Totals for the selected period and the periods before it (history)
+    - Totals and order counts for the selected period and the periods
+      before it (history)
     - Totals for the previous period, and the same period last year
-    - Average value of the periods *before* the selected period
+    - Average value (and order count) of the periods *before* the selected period
     - Breakdown by company (customer / supplier) and by part
 
     Subclasses set `aggregator_class` and `role_required`.
@@ -99,7 +100,23 @@ class MonthlyReportView(APIView):
             for start in starts
         }
 
+        # Distinct orders in each period (an order may span several months)
+        monthly_orders = history.monthly_orders()
+
+        orders = {
+            start: len(
+                set().union(
+                    *(
+                        monthly_orders.get(aggregation.add_months(start, i), set())
+                        for i in range(length)
+                    )
+                )
+            )
+            for start in starts
+        }
+
         previous_periods = [totals[start] for start in starts[:-1]]
+        previous_orders = [orders[start] for start in starts[:-1]]
 
         # Same period last year (identical to the previous period for years)
         last_year = None
@@ -125,11 +142,16 @@ class MonthlyReportView(APIView):
             "previous_total": money(totals[starts[-2]]),
             "last_year_total": None if last_year is None else money(last_year),
             "average": money(sum(previous_periods, Decimal(0)) / count),
+            "average_orders": round(sum(previous_orders) / count, 2),
             "average_periods": count,
             # The `count` most recent periods (ending with the selected one),
             # oldest first. Each is identified by its first month.
             "history": [
-                {"start": start.strftime("%Y-%m"), "total": money(totals[start])}
+                {
+                    "start": start.strftime("%Y-%m"),
+                    "total": money(totals[start]),
+                    "orders": orders[start],
+                }
                 for start in starts[1:]
             ],
             "by_company": by_company,
