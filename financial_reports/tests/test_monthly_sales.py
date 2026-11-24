@@ -26,7 +26,7 @@ from order.status_codes import SalesOrderStatus
 from part.models import Part
 from stock.models import StockItem
 
-from financial_reports import sales
+from financial_reports import aggregation as sales
 from financial_reports.views import MonthlySalesView
 
 
@@ -154,7 +154,7 @@ class MonthlySalesTest(InvenTreeTestCase):
 
         self.assertAlmostEqual(agg.total(), Decimal(195))  # 90 + 25 + 80
         self.assertEqual(agg.missing_rates, {"JPY"})
-        self.assertEqual(agg.unpriced_allocation_count(), 1)
+        self.assertEqual(agg.unpriced_line_count(), 1)
 
     def test_monthly_totals(self):
         """Monthly totals cover every month in the range."""
@@ -171,7 +171,7 @@ class MonthlySalesTest(InvenTreeTestCase):
         """Totals grouped by customer and by part."""
         agg = sales.SalesAggregator(D(2025, 6, 1), D(2025, 7, 1), "USD")
 
-        by_customer = agg.totals_by(sales.DIMENSION_CUSTOMER)
+        by_customer = agg.totals_by(sales.DIMENSION_COMPANY)
         self.assertAlmostEqual(by_customer[self.cust_a.pk], Decimal(115))
         self.assertAlmostEqual(by_customer[self.cust_b.pk], Decimal(80))
 
@@ -212,7 +212,7 @@ class MonthlySalesTest(InvenTreeTestCase):
         self.assertEqual(history[-1], {"month": "2025-06", "total": 195})
 
         self.assertEqual(
-            [(r["name"], r["total"]) for r in data["by_customer"]],
+            [(r["name"], r["total"]) for r in data["by_company"]],
             [("Customer A", 115), ("Customer B", 80)],
         )
         self.assertEqual(
@@ -221,7 +221,7 @@ class MonthlySalesTest(InvenTreeTestCase):
         )
 
         self.assertEqual(data["warnings"]["missing_rates"], ["JPY"])
-        self.assertEqual(data["warnings"]["unpriced_allocations"], 1)
+        self.assertEqual(data["warnings"]["unpriced_lines"], 1)
 
     def test_api_validation(self):
         """Invalid or future months are rejected."""

@@ -54,19 +54,44 @@ class FinancialReports(
 
         return True
 
+    # Monthly reports: each provides an API endpoint and a panel on the target page
+    MONTHLY_REPORTS = [
+        {
+            "path": "sales/monthly/",
+            "view": "MonthlySalesView",
+            "target": "sales",
+            "role": RuleSetEnum.SALES_ORDER,
+            "key": "financial-reports-monthly-sales",
+            "title": "Monthly Sales",
+            "description": "Monthly sales summary",
+            "render": "RenderMonthlySalesPanel",
+        },
+        {
+            "path": "purchasing/monthly/",
+            "view": "MonthlyPurchasingView",
+            "target": "purchasing",
+            "role": RuleSetEnum.PURCHASE_ORDER,
+            "key": "financial-reports-monthly-purchasing",
+            "title": "Monthly Purchasing",
+            "description": "Monthly purchasing summary",
+            "render": "RenderMonthlyPurchasingPanel",
+        },
+    ]
+
     # Custom URL endpoints (from UrlsMixin)
     def setup_urls(self):
         """Configure custom URL endpoints for this plugin."""
         from django.urls import path
 
-        from .views import MonthlySalesView
+        from . import views
 
         return [
             path(
-                "sales/monthly/",
-                MonthlySalesView.as_view(plugin=self),
-                name="monthly-sales",
-            ),
+                report["path"],
+                getattr(views, report["view"]).as_view(plugin=self),
+                name=report["key"],
+            )
+            for report in self.MONTHLY_REPORTS
         ]
 
     # User interface elements (from UserInterfaceMixin)
@@ -79,20 +104,18 @@ class FinancialReports(
 
         target = (context or {}).get("target_model")
 
-        panels = []
-
-        if target == "sales" and check_user_role(user, RuleSetEnum.SALES_ORDER, "view"):
-            panels.append({
-                "key": "financial-reports-monthly-sales",
-                "title": "Monthly Sales",
-                "description": "Monthly sales summary",
+        return [
+            {
+                "key": report["key"],
+                "title": report["title"],
+                "description": report["description"],
                 "icon": "ti:report-money:outline",
-                "source": self.plugin_static_file(
-                    "MonthlySalesPanel.js:RenderMonthlySalesPanel"
-                ),
+                "source": self.plugin_static_file(f"Panels.js:{report['render']}"),
                 "context": {
-                    "api_url": f"/{self.base_url}sales/monthly/",
+                    "api_url": f"/{self.base_url}{report['path']}",
                 },
-            })
-
-        return panels
+            }
+            for report in self.MONTHLY_REPORTS
+            if report["target"] == target
+            and check_user_role(user, report["role"], "view")
+        ]

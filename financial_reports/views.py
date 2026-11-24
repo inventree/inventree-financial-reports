@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from users.permissions import check_user_role
 from users.ruleset import RuleSetEnum
 
-from . import sales
+from . import aggregation
 from .serializers import MonthlyReportRequestSerializer
 
 
@@ -46,48 +46,52 @@ class FinancialReportPermission(permissions.BasePermission):
         return bool(role) and check_user_role(user, role, "view")
 
 
-class MonthlySalesView(APIView):
-    """Monthly sales summary.
+class MonthlyReportView(APIView):
+    """Monthly order value summary (base class).
 
     Returns, for the requested month:
-    - Total shipped sales value (in the default currency)
+    - Total value (in the default currency)
     - Monthly totals for the 12 months ending at the requested month
-    - Average monthly sales for the 12 months *before* the requested month
-    - Breakdown by customer and by part
+    - Average monthly value for the 12 months *before* the requested month
+    - Breakdown by company (customer / supplier) and by part
+
+    Subclasses set `aggregator_class` and `role_required`.
     """
 
     permission_classes = [FinancialReportPermission]
-    role_required = RuleSetEnum.SALES_ORDER
+
+    aggregator_class: type[aggregation.OrderValueAggregator]
+    role_required: str
 
     # Set via as_view(plugin=...) in FinancialReports.setup_urls
     plugin = None
 
     def get(self, request, *args, **kwargs):
-        """Return the monthly sales summary."""
+        """Return the monthly summary."""
         serializer = MonthlyReportRequestSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         params = cast(dict, serializer.validated_data)
 
         selected = datetime.date(params["year"], params["month"], 1)
-        selected_end = sales.add_months(selected, 1)
+        selected_end = aggregation.add_months(selected, 1)
 
         # Include 12 months *prior* to the selected month (for the average),
         # so the window covers 13 months in total
-        history_start = sales.add_months(selected, -12)
+        history_start = aggregation.add_months(selected, -12)
 
-        history = sales.SalesAggregator(history_start, selected_end)
+        history = self.aggregator_class(history_start, selected_end)
         monthly = history.monthly_totals()
 
         previous_months = [
-            monthly[sales.add_months(selected, -i)] for i in range(1, 13)
+            monthly[aggregation.add_months(selected, -i)] for i in range(1, 13)
         ]
 
-        current = sales.SalesAggregator(selected, selected_end, history.currency)
+        current = self.aggregator_class(selected, selected_end, history.currency)
 
-        by_customer = self.customer_breakdown(
-            current.totals_by(sales.DIMENSION_CUSTOMER)
+        by_company = self.company_breakdown(
+            current.totals_by(aggregation.DIMENSION_COMPANY)
         )
-        by_part = self.part_breakdown(current.totals_by(sales.DIMENSION_PART))
+        by_part = self.part_breakdown(current.totals_by(aggregation.DIMENSION_PART))
 
         missing_rates = sorted(history.missing_rates | current.missing_rates)
 
@@ -96,7 +100,9 @@ class MonthlySalesView(APIView):
             "year": selected.year,
             "month": selected.month,
             "total": money(monthly[selected]),
-            "previous_month_total": money(monthly[sales.add_months(selected, -1)]),
+            "previous_month_total": money(
+                monthly[aggregation.add_months(selected, -1)]
+            ),
             "last_year_total": money(monthly[history_start]),
             "average": money(sum(previous_months, Decimal(0)) / 12),
             # 12 most recent months, oldest first
@@ -105,17 +111,17 @@ class MonthlySalesView(APIView):
                 for month, total in sorted(monthly.items())
                 if month > history_start
             ],
-            "by_customer": by_customer,
+            "by_company": by_company,
             "by_part": by_part,
             "warnings": {
                 "missing_rates": missing_rates,
-                "unpriced_allocations": current.unpriced_allocation_count(),
+                "unpriced_lines": current.unpriced_line_count(),
             },
         })
 
     @staticmethod
-    def customer_breakdown(totals: dict) -> list:
-        """Convert {customer_pk: total} into a sorted list with customer names."""
+    def company_breakdown(totals: dict) -> list:
+        """Convert {company_pk: total} into a sorted list with company names."""
         from company.models import Company
 
         names = dict(
@@ -136,7 +142,7 @@ class MonthlySalesView(APIView):
     def part_breakdown(totals: dict) -> list:
         """Convert {part_pk: total} into a sorted list with part names.
 
-        The key None represents extra line items (not linked to a part).
+        The key None represents rows not linked to a part (e.g. extra lines).
         """
         from part.models import Part
 
@@ -161,3 +167,17 @@ class MonthlySalesView(APIView):
             })
 
         return sorted(rows, key=lambda row: row["total"], reverse=True)
+
+
+class MonthlySalesView(MonthlyReportView):
+    """Monthly sales summary (shipped basis)."""
+
+    aggregator_class = aggregation.SalesAggregator
+    role_required = RuleSetEnum.SALES_ORDER
+
+
+class MonthlyPurchasingView(MonthlyReportView):
+    """Monthly purchasing summary (order placed basis)."""
+
+    aggregator_class = aggregation.PurchaseAggregator
+    role_required = RuleSetEnum.PURCHASE_ORDER

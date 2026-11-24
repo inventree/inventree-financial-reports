@@ -13,6 +13,26 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#: src/MonthlyReportPanel.tsx
+msgid "Error"
+msgstr "Error"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Monthly average (previous 12 months)"
+msgstr "Monthly average (previous 12 months)"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Last 12 months"
+msgstr "Last 12 months"
+
+#: src/MonthlyReportPanel.tsx
+msgid "Click a bar to view that month"
+msgstr "Click a bar to view that month"
+
+#: src/MonthlyReportPanel.tsx
+msgid "12 month average"
+msgstr "12 month average"
+
 #: src/MonthlySalesPanel.tsx
 #~ msgid "Sales by customer"
 #~ msgstr "Sales by customer"
@@ -26,104 +46,8 @@ msgstr ""
 #~ msgstr "No exchange rate available for: {0}"
 
 #: src/MonthlySalesPanel.tsx
-#: src/MonthlySalesPanel.tsx
-msgid "This month"
-msgstr "This month"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Number of items to show"
-msgstr "Number of items to show"
-
-#: src/MonthlySalesPanel.tsx
-msgid "All"
-msgstr "All"
-
-#: src/MonthlySalesPanel.tsx
-msgid "No sales this month"
-msgstr "No sales this month"
-
-#: src/MonthlySalesPanel.tsx
-#: src/MonthlySalesPanel.tsx
-msgid "Other ({otherCount})"
-msgstr "Other ({otherCount})"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Previous month"
-msgstr "Previous month"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Select month"
-msgstr "Select month"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Next month"
-msgstr "Next month"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Month to date"
-msgstr "Month to date"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Error"
-msgstr "Error"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Failed to load sales data from the server"
-msgstr "Failed to load sales data from the server"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Total sales"
-msgstr "Total sales"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Monthly average (previous 12 months)"
-msgstr "Monthly average (previous 12 months)"
-
-#: src/MonthlySalesPanel.tsx
-#: src/MonthlySalesPanel.tsx
-msgid "Some sales are excluded from these totals"
-msgstr "Some sales are excluded from these totals"
-
-#: src/MonthlySalesPanel.tsx
-msgid "No exchange rate available for:"
-msgstr "No exchange rate available for:"
-
-#. placeholder {0}: warnings.unpriced_allocations
-#: src/MonthlySalesPanel.tsx
-msgid "Shipped items without a sale price this month: {0}"
-msgstr "Shipped items without a sale price this month: {0}"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Last 12 months"
-msgstr "Last 12 months"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Click a bar to view that month"
-msgstr "Click a bar to view that month"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Sales"
-msgstr "Sales"
-
-#: src/MonthlySalesPanel.tsx
-msgid "12 month average"
-msgstr "12 month average"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Sales by Customer"
-msgstr "Sales by Customer"
-
-#: src/MonthlySalesPanel.tsx
-msgid "No customer"
-msgstr "No customer"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Sales by Product"
-msgstr "Sales by Product"
-
-#: src/MonthlySalesPanel.tsx
-msgid "Extra line items"
-msgstr "Extra line items"
+#~ msgid "Shipped items without a sale price this month: {0}"
+#~ msgstr "Shipped items without a sale price this month: {0}"
 
 #: src/Panel.tsx
 #~ msgid "Translated Text"
@@ -140,3 +64,128 @@ msgstr "Extra line items"
 #: src/Panel.tsx
 #~ msgid "Fallback locale is used if no translation is available"
 #~ msgstr "Fallback locale is used if no translation is available"
+
+#: src/Panels.tsx
+msgid "Total sales"
+msgstr "Total sales"
+
+#: src/Panels.tsx
+msgid "Value of goods shipped"
+msgstr "Value of goods shipped"
+
+#: src/Panels.tsx
+msgid "Sales"
+msgstr "Sales"
+
+#: src/Panels.tsx
+msgid "Failed to load sales data from the server"
+msgstr "Failed to load sales data from the server"
+
+#: src/Panels.tsx
+msgid "Some sales are excluded from these totals"
+msgstr "Some sales are excluded from these totals"
+
+#: src/Panels.tsx
+msgid "Shipped items without a sale price this month: {count}"
+msgstr "Shipped items without a sale price this month: {count}"
+
+#: src/Panels.tsx
+msgid "Sales by Customer"
+msgstr "Sales by Customer"
+
+#: src/Panels.tsx
+msgid "Sales by Product"
+msgstr "Sales by Product"
+
+#: src/Panels.tsx
+msgid "No sales this month"
+msgstr "No sales this month"
+
+#: src/Panels.tsx
+msgid "No customer"
+msgstr "No customer"
+
+#: src/Panels.tsx
+msgid "Extra line items"
+msgstr "Extra line items"
+
+#: src/Panels.tsx
+msgid "Total purchases"
+msgstr "Total purchases"
+
+#: src/Panels.tsx
+msgid "Value of orders placed"
+msgstr "Value of orders placed"
+
+#: src/Panels.tsx
+msgid "Purchases"
+msgstr "Purchases"
+
+#: src/Panels.tsx
+msgid "Failed to load purchasing data from the server"
+msgstr "Failed to load purchasing data from the server"
+
+#: src/Panels.tsx
+msgid "Some purchases are excluded from these totals"
+msgstr "Some purchases are excluded from these totals"
+
+#: src/Panels.tsx
+msgid "Order lines without a purchase price this month: {count}"
+msgstr "Order lines without a purchase price this month: {count}"
+
+#: src/Panels.tsx
+msgid "Purchases by Supplier"
+msgstr "Purchases by Supplier"
+
+#: src/Panels.tsx
+msgid "Purchases by Part"
+msgstr "Purchases by Part"
+
+#: src/Panels.tsx
+msgid "No purchases this month"
+msgstr "No purchases this month"
+
+#: src/Panels.tsx
+msgid "No supplier"
+msgstr "No supplier"
+
+#: src/Panels.tsx
+msgid "Extra or unlinked line items"
+msgstr "Extra or unlinked line items"
+
+#: src/components/BreakdownCard.tsx
+msgid "Other ({otherCount})"
+msgstr "Other ({otherCount})"
+
+#: src/components/BreakdownCard.tsx
+msgid "Number of items to show"
+msgstr "Number of items to show"
+
+#: src/components/BreakdownCard.tsx
+msgid "All"
+msgstr "All"
+
+#: src/components/ComparisonStat.tsx
+#: src/components/MonthNavigator.tsx
+msgid "This month"
+msgstr "This month"
+
+#: src/components/ExclusionWarning.tsx
+msgid "No exchange rate available for:"
+msgstr "No exchange rate available for:"
+
+#: src/components/MonthNavigator.tsx
+msgid "Previous month"
+msgstr "Previous month"
+
+#: src/components/MonthNavigator.tsx
+msgid "Select month"
+msgstr "Select month"
+
+#: src/components/MonthNavigator.tsx
+msgid "Next month"
+msgstr "Next month"
+
+#: src/components/MonthNavigator.tsx
+msgid "Month to date"
+msgstr "Month to date"
