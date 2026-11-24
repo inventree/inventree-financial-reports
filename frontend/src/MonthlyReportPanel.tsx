@@ -22,28 +22,38 @@ import { useEffect, useMemo, useState } from 'react';
 import { BreakdownCard, type BreakdownRow } from './components/BreakdownCard';
 import { ComparisonStat, HeadlineStat } from './components/ComparisonStat';
 import { ExclusionWarning } from './components/ExclusionWarning';
-import { MonthNavigator } from './components/MonthNavigator';
+import { PeriodNavigator } from './components/PeriodNavigator';
 import {
   currentMonth,
+  DEFAULT_PERIOD,
   monthKey,
-  monthLabel,
+  type Period,
   parseMonthKey,
+  periodLabel,
+  periodStart,
   shiftMonth,
+  shiftPeriod,
   type YearMonth
-} from './months';
+} from './periods';
 
 /**
- * Response from a monthly report API endpoint (see views.MonthlyReportView)
+ * Response from a report API endpoint (see views.MonthlyReportView)
  */
 type MonthlyReportData = {
   currency: string;
+  period: Period;
+  // First month of the reported period
   year: number;
   month: number;
   total: number;
-  previous_month_total: number;
-  last_year_total: number;
+  previous_total: number;
+  // Null for yearly reports (it would equal previous_total)
+  last_year_total: number | null;
   average: number;
-  history: { month: string; total: number }[];
+  // Number of preceding periods in the average
+  average_periods: number;
+  // Each period is identified by its first month ('YYYY-MM')
+  history: { start: string; total: number }[];
   by_company: BreakdownRow[];
   by_part: BreakdownRow[];
   warnings: {
@@ -70,7 +80,7 @@ export type MonthlyReportLabels = {
   unpriced: (count: number) => string;
   companyTitle: string;
   partTitle: string;
-  // Shown in the breakdowns when there is nothing for the month
+  // Shown in the breakdowns when there is nothing for the period
   empty: string;
   // Breakdown labels for rows with no company / part
   noCompany: string;
@@ -78,8 +88,37 @@ export type MonthlyReportLabels = {
 };
 
 /**
- * Monthly order value report: headline figures, 12 month history,
- * and breakdowns by company and by part for the selected month.
+ * Period-specific text for the report body
+ */
+function periodText(period: Period, count: number) {
+  switch (period) {
+    case 'quarter':
+      return {
+        current: t`This quarter`,
+        average: t`Quarterly average (previous ${count} quarters)`,
+        history: t`Last ${count} quarters`,
+        click: t`Click the chart to view that quarter`
+      };
+    case 'year':
+      return {
+        current: t`This year`,
+        average: t`Yearly average (previous ${count} years)`,
+        history: t`Last ${count} years`,
+        click: t`Click the chart to view that year`
+      };
+    default:
+      return {
+        current: t`This month`,
+        average: t`Monthly average (previous ${count} months)`,
+        history: t`Last ${count} months`,
+        click: t`Click the chart to view that month`
+      };
+  }
+}
+
+/**
+ * Order value report for a month, quarter or year: headline figures,
+ * history chart, and breakdowns by company and by part.
  */
 export function MonthlyReportPanel({
   context,
@@ -91,12 +130,14 @@ export function MonthlyReportPanel({
   const apiUrl: string = context.context?.api_url;
   const locale = context.locale;
 
+  // Selected month - the report covers the period which contains it
   const [selected, setSelected] = useState<YearMonth>(currentMonth());
+  const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
   const [data, setData] = useState<MonthlyReportData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
-  // Fetch report data whenever the selected month changes
+  // Fetch report data whenever the selected period changes
   useEffect(() => {
     let cancelled = false;
 
@@ -104,7 +145,9 @@ export function MonthlyReportPanel({
     setError(false);
 
     context.api
-      .get(apiUrl, { params: { year: selected.year, month: selected.month } })
+      .get(apiUrl, {
+        params: { period: period, year: selected.year, month: selected.month }
+      })
       .then((response) => {
         if (!cancelled) {
           setData(response.data);
@@ -125,7 +168,7 @@ export function MonthlyReportPanel({
     return () => {
       cancelled = true;
     };
-  }, [apiUrl, context.api, selected]);
+  }, [apiUrl, context.api, selected, period]);
 
   const formatMoney = (value: number) =>
     `${formatCurrencyValue(value, {
@@ -134,17 +177,31 @@ export function MonthlyReportPanel({
       digits: 0
     })}`;
 
+  // Describe the data with the period it was fetched for (the selection may
+  // already have changed while the next report loads)
+  const dataPeriod: Period = data?.period ?? period;
+  const dataStart: YearMonth = data
+    ? { year: data.year, month: data.month }
+    : periodStart(selected, period);
+
+  const text = periodText(dataPeriod, data?.average_periods ?? 0);
+
   const chartData = useMemo(
     () =>
       data?.history.map((entry) => ({
-        key: entry.month,
-        label: monthLabel(parseMonthKey(entry.month), locale, true),
+        key: entry.start,
+        label: periodLabel(
+          parseMonthKey(entry.start),
+          data.period,
+          locale,
+          true
+        ),
         total: entry.total
       })) ?? [],
     [data, locale]
   );
 
-  const selectedKey = monthKey(selected);
+  const selectedKey = monthKey(dataStart);
 
   const selectedPoint = chartData.find((entry) => entry.key === selectedKey);
 
@@ -158,7 +215,15 @@ export function MonthlyReportPanel({
 
   return (
     <Stack gap='sm'>
-      <MonthNavigator value={selected} onChange={setSelected} locale={locale} />
+      <PeriodNavigator
+        value={selected}
+        period={period}
+        onChange={setSelected}
+        // The selected month is kept, so switching shows the period which
+        // contains it (e.g. June 2025 -> Q2 2025 -> 2025)
+        onPeriodChange={setPeriod}
+        locale={locale}
+      />
 
       <Box pos='relative' mih={200}>
         <LoadingOverlay visible={loading} />
@@ -186,23 +251,36 @@ export function MonthlyReportPanel({
                     format={formatMoney}
                   />
                   <ComparisonStat
-                    label={t`Monthly average (previous 12 months)`}
+                    label={text.average}
+                    currentLabel={text.current}
                     value={data.total}
                     reference={data.average}
                     format={formatMoney}
                   />
                   <ComparisonStat
-                    label={monthLabel(shiftMonth(selected, -1), locale)}
+                    label={periodLabel(
+                      shiftPeriod(dataStart, dataPeriod, -1),
+                      dataPeriod,
+                      locale
+                    )}
+                    currentLabel={text.current}
                     value={data.total}
-                    reference={data.previous_month_total}
+                    reference={data.previous_total}
                     format={formatMoney}
                   />
-                  <ComparisonStat
-                    label={monthLabel(shiftMonth(selected, -12), locale)}
-                    value={data.total}
-                    reference={data.last_year_total}
-                    format={formatMoney}
-                  />
+                  {data.last_year_total !== null && (
+                    <ComparisonStat
+                      label={periodLabel(
+                        shiftMonth(dataStart, -12),
+                        dataPeriod,
+                        locale
+                      )}
+                      currentLabel={text.current}
+                      value={data.total}
+                      reference={data.last_year_total}
+                      format={formatMoney}
+                    />
+                  )}
                 </SimpleGrid>
                 <ExclusionWarning
                   title={labels.excluded}
@@ -213,13 +291,13 @@ export function MonthlyReportPanel({
               </Group>
             </Paper>
 
-            {/* 12 month history */}
+            {/* History of recent periods */}
             <Paper withBorder p='md'>
               <Stack gap='sm'>
                 <Group justify='space-between'>
-                  <Title order={5}>{t`Last 12 months`}</Title>
+                  <Title order={5}>{text.history}</Title>
                   <Text size='xs' c='dimmed'>
-                    {t`Click the chart to view that month`}
+                    {text.click}
                   </Text>
                 </Group>
                 <LineChart
@@ -236,7 +314,7 @@ export function MonthlyReportPanel({
                   valueFormatter={formatMoney}
                   gridAxis='y'
                   tickLine='none'
-                  // Highlight the selected month
+                  // Highlight the selected period
                   referenceDots={
                     selectedPoint
                       ? [
@@ -256,12 +334,12 @@ export function MonthlyReportPanel({
                     {
                       y: data.average,
                       color: 'gray.6',
-                      label: t`12 month average`,
+                      label: t`Average`,
                       labelPosition: 'insideTopLeft',
                       strokeDasharray: '4 4'
                     }
                   ]}
-                  // Clicking anywhere in a month's column selects that month
+                  // Clicking anywhere in a period's column selects that period
                   lineChartProps={{
                     style: { cursor: 'pointer' },
                     onClick: (state) => {
@@ -276,7 +354,7 @@ export function MonthlyReportPanel({
               </Stack>
             </Paper>
 
-            {/* Breakdowns for the selected month */}
+            {/* Breakdowns for the selected period */}
             <SimpleGrid cols={{ base: 1, lg: 2 }} spacing='sm'>
               <BreakdownCard
                 title={labels.companyTitle}

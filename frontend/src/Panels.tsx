@@ -22,10 +22,10 @@ function MonthlySalesReport({ context }: { context: InvenTreePluginContext }) {
     loadError: t`Failed to load sales data from the server`,
     excluded: t`Some sales are excluded from these totals`,
     unpriced: (count) =>
-      t`Shipped items without a sale price this month: ${count}`,
+      t`Shipped items without a sale price in this period: ${count}`,
     companyTitle: t`Sales by Customer`,
     partTitle: t`Sales by Product`,
-    empty: t`No sales this month`,
+    empty: t`No sales in this period`,
     noCompany: t`No customer`,
     noPart: t`Extra line items`
   };
@@ -45,10 +45,10 @@ function MonthlyPurchasingReport({
     loadError: t`Failed to load purchasing data from the server`,
     excluded: t`Some purchases are excluded from these totals`,
     unpriced: (count) =>
-      t`Order lines without a purchase price this month: ${count}`,
+      t`Order lines without a purchase price in this period: ${count}`,
     companyTitle: t`Purchases by Supplier`,
     partTitle: t`Purchases by Part`,
-    empty: t`No purchases this month`,
+    empty: t`No purchases in this period`,
     noCompany: t`No supplier`,
     noPart: t`Extra or unlinked line items`
   };

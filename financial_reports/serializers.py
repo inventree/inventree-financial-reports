@@ -4,12 +4,22 @@ from rest_framework import serializers
 
 from InvenTree.helpers import current_date
 
+from .aggregation import PERIOD_MONTH, PERIOD_MONTHS
 
-class MonthlyReportRequestSerializer(serializers.Serializer):
-    """Query parameters for a monthly report.
 
-    If not specified, the current month is used.
+class ReportRequestSerializer(serializers.Serializer):
+    """Query parameters for a periodic report.
+
+    The report covers the calendar period (month, quarter or year) which
+    contains the given year and month. If not specified, the current month
+    is used.
     """
+
+    period = serializers.ChoiceField(
+        choices=list(PERIOD_MONTHS.keys()),
+        default=PERIOD_MONTH,
+        label="Period",
+    )
 
     year = serializers.IntegerField(
         required=False, min_value=1900, max_value=9999, label="Year"
@@ -20,7 +30,7 @@ class MonthlyReportRequestSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        """Fill in defaults, and prevent requests for future months."""
+        """Fill in defaults, and prevent requests for future periods."""
         attrs = super().validate(attrs)
 
         today = current_date()
@@ -29,6 +39,6 @@ class MonthlyReportRequestSerializer(serializers.Serializer):
         attrs.setdefault("month", today.month)
 
         if (attrs["year"], attrs["month"]) > (today.year, today.month):
-            raise serializers.ValidationError("Cannot report on a future month")
+            raise serializers.ValidationError("Cannot report on a future period")
 
         return attrs

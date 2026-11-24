@@ -1,8 +1,10 @@
+import { t } from '@lingui/core/macro';
 import type { DateValue } from '@mantine/dates';
 
 /**
- * Calendar month helpers, shared by all monthly reports.
+ * Calendar period helpers, shared by all reports.
  * Months are handled as {year, month} (1-12) to avoid timezone issues.
+ * A period (month, quarter or year) is identified by its first month.
  */
 export type YearMonth = { year: number; month: number };
 
@@ -26,8 +28,38 @@ export function parseMonthKey(key: string): YearMonth {
   return { year, month };
 }
 
-export function isCurrentMonth(ym: YearMonth): boolean {
-  return monthKey(ym) === monthKey(currentMonth());
+// Reporting periods (values match the API 'period' parameter)
+export type Period = 'month' | 'quarter' | 'year';
+
+export const DEFAULT_PERIOD: Period = 'month';
+
+const PERIOD_MONTHS: Record<Period, number> = {
+  month: 1,
+  quarter: 3,
+  year: 12
+};
+
+// First month of the calendar period containing the given month
+export function periodStart(ym: YearMonth, period: Period): YearMonth {
+  const length = PERIOD_MONTHS[period];
+  const month = Math.floor((ym.month - 1) / length) * length + 1;
+  return { year: ym.year, month: month };
+}
+
+// Start of the period offset by the given number of periods
+export function shiftPeriod(
+  ym: YearMonth,
+  period: Period,
+  offset: number
+): YearMonth {
+  return shiftMonth(periodStart(ym, period), offset * PERIOD_MONTHS[period]);
+}
+
+export function isCurrentPeriod(ym: YearMonth, period: Period): boolean {
+  return (
+    monthKey(periodStart(ym, period)) ===
+    monthKey(periodStart(currentMonth(), period))
+  );
 }
 
 // Localised month name, e.g. "June 2025" (or "Jun 25" when short)
@@ -36,6 +68,30 @@ export function monthLabel(ym: YearMonth, locale: string, short = false) {
     month: short ? 'short' : 'long',
     year: short ? '2-digit' : 'numeric'
   });
+}
+
+// Localised period name, e.g. "June 2025" / "Q2 2025" / "2025"
+// (short: "Jun 25" / "Q2 25" / "2025")
+export function periodLabel(
+  ym: YearMonth,
+  period: Period,
+  locale: string,
+  short = false
+): string {
+  const start = periodStart(ym, period);
+  const year =
+    short && period !== 'year' ? String(start.year).slice(-2) : start.year;
+
+  switch (period) {
+    case 'quarter': {
+      const quarter = Math.floor((start.month - 1) / 3) + 1;
+      return t`Q${quarter} ${year}`;
+    }
+    case 'year':
+      return `${year}`;
+    default:
+      return monthLabel(start, locale, short);
+  }
 }
 
 // Mantine date pickers use 'YYYY-MM-DD' strings

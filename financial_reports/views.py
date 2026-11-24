@@ -12,7 +12,7 @@ from users.permissions import check_user_role
 from users.ruleset import RuleSetEnum
 
 from . import aggregation
-from .serializers import MonthlyReportRequestSerializer
+from .serializers import ReportRequestSerializer
 
 
 def money(value: Decimal) -> float:
@@ -47,12 +47,13 @@ class FinancialReportPermission(permissions.BasePermission):
 
 
 class MonthlyReportView(APIView):
-    """Monthly order value summary (base class).
+    """Periodic order value summary (base class).
 
-    Returns, for the requested month:
-    - Total value (in the default currency)
-    - Monthly totals for the 12 months ending at the requested month
-    - Average monthly value for the 12 months *before* the requested month
+    Query parameters select a calendar month, quarter or year. Returns:
+    - Total value for the selected period (in the default currency)
+    - Totals for the selected period and the periods before it (history)
+    - Totals for the previous period, and the same period last year
+    - Average value of the periods *before* the selected period
     - Breakdown by company (customer / supplier) and by part
 
     Subclasses set `aggregator_class` and `role_required`.
@@ -67,24 +68,44 @@ class MonthlyReportView(APIView):
     plugin = None
 
     def get(self, request, *args, **kwargs):
-        """Return the monthly summary."""
-        serializer = MonthlyReportRequestSerializer(data=request.query_params)
+        """Return the period summary."""
+        serializer = ReportRequestSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         params = cast(dict, serializer.validated_data)
 
-        selected = datetime.date(params["year"], params["month"], 1)
-        selected_end = aggregation.add_months(selected, 1)
+        period = params["period"]
+        length = aggregation.PERIOD_MONTHS[period]
+        count = aggregation.PERIOD_HISTORY[period]
 
-        # Include 12 months *prior* to the selected month (for the average),
-        # so the window covers 13 months in total
-        history_start = aggregation.add_months(selected, -12)
+        selected = aggregation.period_start(
+            datetime.date(params["year"], params["month"], 1), period
+        )
+        selected_end = aggregation.add_months(selected, length)
 
-        history = self.aggregator_class(history_start, selected_end)
+        # The selected period, plus `count` periods before it (for the
+        # average), oldest first
+        starts = [
+            aggregation.add_months(selected, -length * i) for i in range(count, -1, -1)
+        ]
+
+        history = self.aggregator_class(starts[0], selected_end)
         monthly = history.monthly_totals()
 
-        previous_months = [
-            monthly[aggregation.add_months(selected, -i)] for i in range(1, 13)
-        ]
+        totals = {
+            start: sum(
+                (monthly[aggregation.add_months(start, i)] for i in range(length)),
+                Decimal(0),
+            )
+            for start in starts
+        }
+
+        previous_periods = [totals[start] for start in starts[:-1]]
+
+        # Same period last year (identical to the previous period for years)
+        last_year = None
+
+        if period != aggregation.PERIOD_YEAR:
+            last_year = totals.get(aggregation.add_months(selected, -12))
 
         current = self.aggregator_class(selected, selected_end, history.currency)
 
@@ -97,19 +118,19 @@ class MonthlyReportView(APIView):
 
         return Response({
             "currency": history.currency,
+            "period": period,
             "year": selected.year,
             "month": selected.month,
-            "total": money(monthly[selected]),
-            "previous_month_total": money(
-                monthly[aggregation.add_months(selected, -1)]
-            ),
-            "last_year_total": money(monthly[history_start]),
-            "average": money(sum(previous_months, Decimal(0)) / 12),
-            # 12 most recent months, oldest first
+            "total": money(totals[selected]),
+            "previous_total": money(totals[starts[-2]]),
+            "last_year_total": None if last_year is None else money(last_year),
+            "average": money(sum(previous_periods, Decimal(0)) / count),
+            "average_periods": count,
+            # The `count` most recent periods (ending with the selected one),
+            # oldest first. Each is identified by its first month.
             "history": [
-                {"month": month.strftime("%Y-%m"), "total": money(total)}
-                for month, total in sorted(monthly.items())
-                if month > history_start
+                {"start": start.strftime("%Y-%m"), "total": money(totals[start])}
+                for start in starts[1:]
             ],
             "by_company": by_company,
             "by_part": by_part,
