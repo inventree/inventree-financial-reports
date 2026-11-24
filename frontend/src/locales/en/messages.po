@@ -27,6 +27,14 @@ msgid "This month"
 msgstr "This month"
 
 #: src/MonthlySalesPanel.tsx
+msgid "Number of items to show"
+msgstr "Number of items to show"
+
+#: src/MonthlySalesPanel.tsx
+msgid "All"
+msgstr "All"
+
+#: src/MonthlySalesPanel.tsx
 msgid "No sales this month"
 msgstr "No sales this month"
 

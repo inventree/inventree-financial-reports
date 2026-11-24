@@ -22,6 +22,8 @@ import {
   LoadingOverlay,
   Paper,
   Popover,
+  ScrollArea,
+  SegmentedControl,
   SimpleGrid,
   Space,
   Stack,
@@ -43,7 +45,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { loadLocale } from './locales';
 
 // Categorical palette for pie slices, in fixed order (validated for CVD
-// separation in light and dark mode). Remaining entries fold into "Other".
+// separation in light and dark mode, including the last -> first wrap-around).
+// Do not reorder without re-validating.
 const SLICE_COLORS = [
   '#1c7ed6', // blue
   '#e8590c', // orange
@@ -51,9 +54,26 @@ const SLICE_COLORS = [
   '#ae3ec9', // grape
   '#66a80f', // lime
   '#4263eb', // indigo
-  '#e03131' // red
+  '#e03131', // red
+  '#1098ad', // cyan
+  '#7048e8', // violet
+  '#d6336c' // pink
 ];
+
+// Slices beyond the palette are drawn in a neutral tone (identified by
+// tooltip and table row), and the folded remainder is a darker neutral.
+const TAIL_COLOR = 'gray.4';
 const OTHER_COLOR = 'gray.6';
+
+// Options for the number of items shown in each breakdown
+const SLICE_LIMITS = ['10', '20', '50', 'all'];
+const DEFAULT_SLICE_LIMIT = '10';
+
+// Convert a Mantine theme color key (e.g. 'gray.6') to a CSS color
+function cssColor(color: string): string {
+  const match = /^(\w+)\.(\d+)$/.exec(color);
+  return match ? `var(--mantine-color-${match[1]}-${match[2]})` : color;
+}
 
 type BreakdownRow = {
   pk: number | null;
@@ -179,24 +199,26 @@ function BreakdownCard({
   title,
   rows,
   total,
-  maxSlices,
   format,
   renderName
 }: {
   title: string;
   rows: BreakdownRow[];
   total: number;
-  maxSlices: number;
   format: (value: number) => string;
   renderName: (row: BreakdownRow) => React.ReactNode;
 }) {
+  const [limit, setLimit] = useState<string>(DEFAULT_SLICE_LIMIT);
+
+  const maxSlices = limit === 'all' ? rows.length : Number(limit);
+
   // Top N entries get their own slice, the remainder is folded into "Other"
   const slices = useMemo(() => {
     const top = rows.slice(0, maxSlices).map((row, index) => ({
       key: `${row.pk ?? 'none'}`,
       row: row as BreakdownRow | null,
       value: row.total,
-      color: SLICE_COLORS[index]
+      color: SLICE_COLORS[index] ?? TAIL_COLOR
     }));
 
     const rest = rows.slice(maxSlices);
@@ -221,7 +243,20 @@ function BreakdownCard({
   return (
     <Paper withBorder p='md'>
       <Stack gap='sm'>
-        <Title order={5}>{title}</Title>
+        <Group justify='space-between' gap='xs'>
+          <Title order={5}>{title}</Title>
+          <Tooltip label={t`Number of items to show`} position='top'>
+            <SegmentedControl
+              size='xs'
+              value={limit}
+              onChange={setLimit}
+              data={SLICE_LIMITS.map((value) => ({
+                value: value,
+                label: value === 'all' ? t`All` : value
+              }))}
+            />
+          </Tooltip>
+        </Group>
         <Divider />
         {slices.length === 0 ? (
           <Text c='dimmed' size='sm'>
@@ -244,46 +279,40 @@ function BreakdownCard({
                 color: slice.color
               }))}
             />
-            <Table
-              style={{ flex: 1, minWidth: 260 }}
-              verticalSpacing={4}
-              highlightOnHover
-            >
-              <Table.Tbody>
-                {slices.map((slice) => (
-                  <Table.Tr key={slice.key}>
-                    <Table.Td w={20}>
-                      <ColorSwatch
-                        color={
-                          slice.color === OTHER_COLOR
-                            ? 'var(--mantine-color-gray-6)'
-                            : slice.color
-                        }
-                        size={12}
-                        withShadow={false}
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      {slice.row === null ? (
+            <ScrollArea.Autosize mah={400} style={{ flex: 1, minWidth: 260 }}>
+              <Table verticalSpacing={4} highlightOnHover>
+                <Table.Tbody>
+                  {slices.map((slice) => (
+                    <Table.Tr key={slice.key}>
+                      <Table.Td w={20}>
+                        <ColorSwatch
+                          color={cssColor(slice.color)}
+                          size={12}
+                          withShadow={false}
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        {slice.row === null ? (
+                          <Text size='sm' c='dimmed'>
+                            {t`Other (${otherCount})`}
+                          </Text>
+                        ) : (
+                          renderName(slice.row)
+                        )}
+                      </Table.Td>
+                      <Table.Td ta='right'>
+                        <Text size='sm'>{format(slice.value)}</Text>
+                      </Table.Td>
+                      <Table.Td ta='right' w={60}>
                         <Text size='sm' c='dimmed'>
-                          {t`Other (${otherCount})`}
+                          {slice.percent.toFixed(1)}%
                         </Text>
-                      ) : (
-                        renderName(slice.row)
-                      )}
-                    </Table.Td>
-                    <Table.Td ta='right'>
-                      <Text size='sm'>{format(slice.value)}</Text>
-                    </Table.Td>
-                    <Table.Td ta='right' w={60}>
-                      <Text size='sm' c='dimmed'>
-                        {slice.percent.toFixed(1)}%
-                      </Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </ScrollArea.Autosize>
           </Group>
         )}
       </Stack>
@@ -560,7 +589,6 @@ function MonthlySalesPanel({ context }: { context: InvenTreePluginContext }) {
                 title={t`Sales by Customer`}
                 rows={data.by_customer}
                 total={data.total}
-                maxSlices={SLICE_COLORS.length}
                 format={formatMoney}
                 renderName={(row) =>
                   row.pk ? (
@@ -581,7 +609,6 @@ function MonthlySalesPanel({ context }: { context: InvenTreePluginContext }) {
                 title={t`Sales by Product`}
                 rows={data.by_part}
                 total={data.total}
-                maxSlices={SLICE_COLORS.length}
                 format={formatMoney}
                 renderName={(row) =>
                   row.pk ? (
