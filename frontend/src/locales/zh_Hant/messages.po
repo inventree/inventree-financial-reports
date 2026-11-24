@@ -22,6 +22,10 @@ msgstr ""
 #~ msgstr ""
 
 #: src/MonthlySalesPanel.tsx
+#~ msgid "No exchange rate available for: {0}"
+#~ msgstr ""
+
+#: src/MonthlySalesPanel.tsx
 #: src/MonthlySalesPanel.tsx
 msgid "This month"
 msgstr ""
@@ -68,25 +72,25 @@ msgid "Failed to load sales data from the server"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
-msgid "Some sales are excluded from these totals"
-msgstr ""
-
-#. placeholder {0}: warnings.missing_rates.join(', ')
-#: src/MonthlySalesPanel.tsx
-msgid "No exchange rate available for: {0}"
-msgstr ""
-
-#. placeholder {0}: warnings.unpriced_allocations
-#: src/MonthlySalesPanel.tsx
-msgid "Shipped items without a sale price this month: {0}"
-msgstr ""
-
-#: src/MonthlySalesPanel.tsx
 msgid "Total sales"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
 msgid "Monthly average (previous 12 months)"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+#: src/MonthlySalesPanel.tsx
+msgid "Some sales are excluded from these totals"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "No exchange rate available for:"
+msgstr ""
+
+#. placeholder {0}: warnings.unpriced_allocations
+#: src/MonthlySalesPanel.tsx
+msgid "Shipped items without a sale price this month: {0}"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx

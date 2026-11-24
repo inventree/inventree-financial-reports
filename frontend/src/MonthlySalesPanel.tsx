@@ -11,6 +11,7 @@ import {
 import { t } from '@lingui/core/macro';
 import { BarChart, PieChart } from '@mantine/charts';
 import {
+  ActionIcon,
   Alert,
   Anchor,
   Badge,
@@ -19,6 +20,7 @@ import {
   ColorSwatch,
   Divider,
   Group,
+  HoverCard,
   LoadingOverlay,
   Paper,
   Popover,
@@ -39,7 +41,9 @@ import {
   IconArrowUpRight,
   IconCalendarMonth,
   IconChevronLeft,
-  IconChevronRight
+  IconChevronRight,
+  IconCurrencyDollarOff,
+  IconTagOff
 } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { loadLocale } from './locales';
@@ -488,55 +492,105 @@ function MonthlySalesPanel({ context }: { context: InvenTreePluginContext }) {
 
         {data && (
           <Stack gap='sm'>
-            {hasWarnings && (
-              <Alert
-                color='yellow'
-                icon={<IconAlertTriangle />}
-                title={t`Some sales are excluded from these totals`}
-              >
-                {warnings.missing_rates.length > 0 && (
-                  <Text size='sm'>
-                    {t`No exchange rate available for: ${warnings.missing_rates.join(', ')}`}
-                  </Text>
-                )}
-                {warnings.unpriced_allocations > 0 && (
-                  <Text size='sm'>
-                    {t`Shipped items without a sale price this month: ${warnings.unpriced_allocations}`}
-                  </Text>
-                )}
-              </Alert>
-            )}
-
             {/* Headline figures */}
             <Paper withBorder p='md'>
-              <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing='lg'>
-                <Stack gap={2}>
-                  <Text size='sm' c='dimmed'>
-                    {t`Total sales`} ({data.currency})
-                  </Text>
-                  <Text fz={32} fw={700} lh={1.1}>
-                    {formatMoney(data.total)}
-                  </Text>
-                </Stack>
-                <ComparisonStat
-                  label={t`Monthly average (previous 12 months)`}
-                  value={data.total}
-                  reference={data.average}
-                  format={formatMoney}
-                />
-                <ComparisonStat
-                  label={monthLabel(shiftMonth(selected, -1))}
-                  value={data.total}
-                  reference={data.previous_month_total}
-                  format={formatMoney}
-                />
-                <ComparisonStat
-                  label={monthLabel(shiftMonth(selected, -12))}
-                  value={data.total}
-                  reference={data.last_year_total}
-                  format={formatMoney}
-                />
-              </SimpleGrid>
+              <Group align='flex-start' wrap='nowrap' gap='sm'>
+                <SimpleGrid
+                  cols={{ base: 1, sm: 2, md: 4 }}
+                  spacing='lg'
+                  style={{ flex: 1 }}
+                >
+                  <Stack gap={2}>
+                    <Text size='sm' c='dimmed'>
+                      {t`Total sales`} ({data.currency})
+                    </Text>
+                    <Text fz={32} fw={700} lh={1.1}>
+                      {formatMoney(data.total)}
+                    </Text>
+                  </Stack>
+                  <ComparisonStat
+                    label={t`Monthly average (previous 12 months)`}
+                    value={data.total}
+                    reference={data.average}
+                    format={formatMoney}
+                  />
+                  <ComparisonStat
+                    label={monthLabel(shiftMonth(selected, -1))}
+                    value={data.total}
+                    reference={data.previous_month_total}
+                    format={formatMoney}
+                  />
+                  <ComparisonStat
+                    label={monthLabel(shiftMonth(selected, -12))}
+                    value={data.total}
+                    reference={data.last_year_total}
+                    format={formatMoney}
+                  />
+                </SimpleGrid>
+                {hasWarnings && (
+                  <HoverCard
+                    position='left-start'
+                    width={360}
+                    shadow='md'
+                    withArrow
+                    events={{ hover: true, focus: true, touch: true }}
+                  >
+                    <HoverCard.Target>
+                      <ActionIcon
+                        variant='transparent'
+                        color='yellow'
+                        aria-label={t`Some sales are excluded from these totals`}
+                      >
+                        <IconAlertTriangle />
+                      </ActionIcon>
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown p={0}>
+                      <Alert
+                        variant='light'
+                        color='yellow'
+                        icon={<IconAlertTriangle />}
+                        title={t`Some sales are excluded from these totals`}
+                      >
+                        <Stack gap='xs'>
+                          {warnings.missing_rates.length > 0 && (
+                            <Group gap='xs' wrap='nowrap' align='flex-start'>
+                              <IconCurrencyDollarOff
+                                size={18}
+                                style={{ flexShrink: 0 }}
+                              />
+                              <Stack gap={4}>
+                                <Text size='sm'>
+                                  {t`No exchange rate available for:`}
+                                </Text>
+                                <Group gap={4}>
+                                  {warnings.missing_rates.map((code) => (
+                                    <Badge
+                                      key={code}
+                                      size='sm'
+                                      variant='outline'
+                                      color='yellow'
+                                    >
+                                      {code}
+                                    </Badge>
+                                  ))}
+                                </Group>
+                              </Stack>
+                            </Group>
+                          )}
+                          {warnings.unpriced_allocations > 0 && (
+                            <Group gap='xs' wrap='nowrap' align='flex-start'>
+                              <IconTagOff size={18} style={{ flexShrink: 0 }} />
+                              <Text size='sm'>
+                                {t`Shipped items without a sale price this month: ${warnings.unpriced_allocations}`}
+                              </Text>
+                            </Group>
+                          )}
+                        </Stack>
+                      </Alert>
+                    </HoverCard.Dropdown>
+                  </HoverCard>
+                )}
+              </Group>
             </Paper>
 
             {/* 12 month history */}
