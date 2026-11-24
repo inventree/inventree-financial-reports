@@ -14,6 +14,10 @@ msgstr ""
 "Plural-Forms: \n"
 
 #: src/MonthlyReportPanel.tsx
+#~ msgid "Click a bar to view that month"
+#~ msgstr ""
+
+#: src/MonthlyReportPanel.tsx
 msgid "Error"
 msgstr ""
 
@@ -26,7 +30,7 @@ msgid "Last 12 months"
 msgstr ""
 
 #: src/MonthlyReportPanel.tsx
-msgid "Click a bar to view that month"
+msgid "Click the chart to view that month"
 msgstr ""
 
 #: src/MonthlyReportPanel.tsx
