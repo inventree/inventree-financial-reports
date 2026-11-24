@@ -2,7 +2,8 @@ import {
   formatCurrencyValue,
   getDetailUrl,
   type InvenTreePluginContext,
-  ModelType
+  ModelType,
+  navigateToLink
 } from '@inventreedb/ui';
 import { t } from '@lingui/core/macro';
 import { LineChart } from '@mantine/charts';
@@ -147,9 +148,13 @@ export function MonthlyReportPanel({
 
   const selectedPoint = chartData.find((entry) => entry.key === selectedKey);
 
-  const navigateTo = (model: ModelType) => (pk: number) => {
-    context.navigate(getDetailUrl(model, pk));
-  };
+  // Absolute URL (including the frontend base path), for anchor hrefs
+  const detailUrl = (model: ModelType) => (pk: number) =>
+    getDetailUrl(model, pk, true);
+
+  // Navigate within the app, or open a new tab for modified clicks
+  const onLinkClick = (url: string, event: React.MouseEvent) =>
+    navigateToLink(url, context.navigate, event);
 
   return (
     <Stack gap='sm'>
@@ -280,7 +285,8 @@ export function MonthlyReportPanel({
                 format={formatMoney}
                 emptyText={labels.empty}
                 unlinkedLabel={labels.noCompany}
-                onSelect={navigateTo(ModelType.company)}
+                getLink={detailUrl(ModelType.company)}
+                onLinkClick={onLinkClick}
               />
               <BreakdownCard
                 title={labels.partTitle}
@@ -289,7 +295,8 @@ export function MonthlyReportPanel({
                 format={formatMoney}
                 emptyText={labels.empty}
                 unlinkedLabel={labels.noPart}
-                onSelect={navigateTo(ModelType.part)}
+                getLink={detailUrl(ModelType.part)}
+                onLinkClick={onLinkClick}
               />
             </SimpleGrid>
           </Stack>

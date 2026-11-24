@@ -67,7 +67,8 @@ export function BreakdownCard({
   format,
   emptyText,
   unlinkedLabel,
-  onSelect
+  getLink,
+  onLinkClick
 }: {
   title: string;
   rows: BreakdownRow[];
@@ -77,8 +78,10 @@ export function BreakdownCard({
   emptyText: string;
   // Label for the row with no linked object (pk = null)
   unlinkedLabel: string;
-  // Called when a linked row name is clicked
-  onSelect?: (pk: number) => void;
+  // URL for a linked row (rendered as the anchor href)
+  getLink?: (pk: number) => string;
+  // Click handler for a linked row (e.g. for in-app navigation)
+  onLinkClick?: (url: string, event: React.MouseEvent) => void;
 }) {
   const [limit, setLimit] = useState<string>(DEFAULT_SLICE_LIMIT);
 
@@ -120,11 +123,18 @@ export function BreakdownCard({
   };
 
   const renderName = (row: BreakdownRow | null) => {
-    if (row?.pk && onSelect) {
-      const pk = row.pk;
+    const url = row?.pk && getLink ? getLink(row.pk) : '';
+
+    if (url) {
+      // A real href, so the target shows in the status bar and can be
+      // opened in a new tab
       return (
-        <Anchor size='sm' onClick={() => onSelect(pk)}>
-          {row.name}
+        <Anchor
+          size='sm'
+          href={url}
+          onClick={(event) => onLinkClick?.(url, event)}
+        >
+          {row?.name}
         </Anchor>
       );
     }
