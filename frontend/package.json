@@ -22,7 +22,9 @@
     "@mantine/notifications": ">= 9.2.1",
     "@mantine/charts": "^9.7.1",
     "@tabler/icons-react": "^3.44.0",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "@mantine/dates": "^9.7.1",
+    "dayjs": "^1.11.21"
   },
   "peerDependencies": {},
   "devDependencies": {

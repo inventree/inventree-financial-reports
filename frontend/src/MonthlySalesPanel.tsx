@@ -1,35 +1,41 @@
 import {
+  ActionButton,
   checkPluginVersion,
   formatCurrencyValue,
   getDetailUrl,
   type InvenTreePluginContext,
   LocalizedComponent,
-  ModelType
+  ModelType,
+  StylishText
 } from '@inventreedb/ui';
 import { t } from '@lingui/core/macro';
 import { BarChart, PieChart } from '@mantine/charts';
 import {
-  ActionIcon,
   Alert,
   Anchor,
   Badge,
   Box,
   Button,
   ColorSwatch,
+  Divider,
   Group,
   LoadingOverlay,
   Paper,
+  Popover,
   SimpleGrid,
+  Space,
   Stack,
   Table,
   Text,
   Title,
   Tooltip
 } from '@mantine/core';
+import { type DateValue, MonthPicker } from '@mantine/dates';
 import {
   IconAlertTriangle,
   IconArrowDownRight,
   IconArrowUpRight,
+  IconCalendarMonth,
   IconChevronLeft,
   IconChevronRight
 } from '@tabler/icons-react';
@@ -92,6 +98,26 @@ function monthKey(ym: YearMonth): string {
 function parseMonthKey(key: string): YearMonth {
   const [year, month] = key.split('-').map(Number);
   return { year, month };
+}
+
+// Mantine date pickers use 'YYYY-MM-DD' strings
+function toPickerValue(ym: YearMonth): string {
+  return `${monthKey(ym)}-01`;
+}
+
+// Parse the picker value without going via Date, which would apply a UTC
+// offset to 'YYYY-MM-DD' strings and could shift the month
+function fromPickerValue(value: DateValue | Date): YearMonth | null {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return { year: value.getFullYear(), month: value.getMonth() + 1 };
+  }
+
+  const match = /^(\d{4})-(\d{2})/.exec(value);
+  return match ? { year: Number(match[1]), month: Number(match[2]) } : null;
 }
 
 /**
@@ -196,6 +222,7 @@ function BreakdownCard({
     <Paper withBorder p='md'>
       <Stack gap='sm'>
         <Title order={5}>{title}</Title>
+        <Divider />
         {slices.length === 0 ? (
           <Text c='dimmed' size='sm'>
             {t`No sales this month`}
@@ -272,7 +299,20 @@ function MonthlySalesPanel({ context }: { context: InvenTreePluginContext }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
+  const [monthPickerOpened, setMonthPickerOpened] = useState<boolean>(false);
+
   const isCurrentMonth = monthKey(selected) === monthKey(currentMonth());
+
+  // Callback for the month picker (future months are disabled via maxDate)
+  const selectMonth = (value: DateValue) => {
+    const ym = fromPickerValue(value);
+
+    if (ym && monthKey(ym) <= monthKey(currentMonth())) {
+      setSelected(ym);
+    }
+
+    setMonthPickerOpened(false);
+  };
 
   // Fetch report data whenever the selected month changes
   useEffect(() => {
@@ -344,31 +384,53 @@ function MonthlySalesPanel({ context }: { context: InvenTreePluginContext }) {
   return (
     <Stack gap='sm'>
       {/* Month navigation */}
+      {/* Layout follows the built-in InvenTree calendar header:
+          prev | month picker | next | month name ... actions */}
       <Paper withBorder p='sm'>
-        <Group justify='space-between'>
-          <Group gap='xs'>
-            <Tooltip label={t`Previous month`}>
-              <ActionIcon
-                variant='default'
-                aria-label={t`Previous month`}
-                onClick={() => setSelected(shiftMonth(selected, -1))}
-              >
-                <IconChevronLeft size={18} />
-              </ActionIcon>
-            </Tooltip>
-            <Title order={4} miw={180} ta='center'>
-              {monthLabel(selected)}
-            </Title>
-            <Tooltip label={t`Next month`}>
-              <ActionIcon
-                variant='default'
-                aria-label={t`Next month`}
-                disabled={isCurrentMonth}
-                onClick={() => setSelected(shiftMonth(selected, 1))}
-              >
-                <IconChevronRight size={18} />
-              </ActionIcon>
-            </Tooltip>
+        <Group justify='space-between' gap='xs'>
+          <Group gap={0} justify='left'>
+            <ActionButton
+              icon={<IconChevronLeft />}
+              onClick={() => setSelected(shiftMonth(selected, -1))}
+              tooltipAlignment='top'
+              tooltip={t`Previous month`}
+            />
+            <Popover
+              opened={monthPickerOpened}
+              onClose={() => setMonthPickerOpened(false)}
+              position='bottom-start'
+              shadow='md'
+            >
+              <Popover.Target>
+                <Tooltip label={t`Select month`} position='top'>
+                  <Button
+                    m={0}
+                    variant='transparent'
+                    aria-label='financial-reports-select-month'
+                    onClick={() => setMonthPickerOpened(!monthPickerOpened)}
+                  >
+                    <IconCalendarMonth />
+                  </Button>
+                </Tooltip>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <MonthPicker
+                  value={toPickerValue(selected)}
+                  defaultDate={toPickerValue(selected)}
+                  maxDate={toPickerValue(currentMonth())}
+                  onChange={selectMonth}
+                />
+              </Popover.Dropdown>
+            </Popover>
+            <ActionButton
+              icon={<IconChevronRight />}
+              onClick={() => setSelected(shiftMonth(selected, 1))}
+              tooltipAlignment='top'
+              tooltip={t`Next month`}
+              disabled={isCurrentMonth}
+            />
+            <Space w='sm' />
+            <StylishText size='lg'>{monthLabel(selected)}</StylishText>
           </Group>
           <Group gap='xs'>
             {isCurrentMonth && (
@@ -495,7 +557,7 @@ function MonthlySalesPanel({ context }: { context: InvenTreePluginContext }) {
             {/* Breakdowns for the selected month */}
             <SimpleGrid cols={{ base: 1, lg: 2 }} spacing='sm'>
               <BreakdownCard
-                title={t`Sales by customer`}
+                title={t`Sales by Customer`}
                 rows={data.by_customer}
                 total={data.total}
                 maxSlices={SLICE_COLORS.length}
@@ -516,7 +578,7 @@ function MonthlySalesPanel({ context }: { context: InvenTreePluginContext }) {
                 }
               />
               <BreakdownCard
-                title={t`Sales by product`}
+                title={t`Sales by Product`}
                 rows={data.by_part}
                 total={data.total}
                 maxSlices={SLICE_COLORS.length}

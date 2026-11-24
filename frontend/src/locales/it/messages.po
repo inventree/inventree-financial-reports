@@ -14,6 +14,14 @@ msgstr ""
 "Plural-Forms: \n"
 
 #: src/MonthlySalesPanel.tsx
+#~ msgid "Sales by customer"
+#~ msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+#~ msgid "Sales by product"
+#~ msgstr ""
+
+#: src/MonthlySalesPanel.tsx
 #: src/MonthlySalesPanel.tsx
 msgid "This month"
 msgstr ""
@@ -28,11 +36,13 @@ msgid "Other ({otherCount})"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
-#: src/MonthlySalesPanel.tsx
 msgid "Previous month"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
+msgid "Select month"
+msgstr ""
+
 #: src/MonthlySalesPanel.tsx
 msgid "Next month"
 msgstr ""
@@ -88,7 +98,7 @@ msgid "12 month average"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
-msgid "Sales by customer"
+msgid "Sales by Customer"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
@@ -96,7 +106,7 @@ msgid "No customer"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
-msgid "Sales by product"
+msgid "Sales by Product"
 msgstr ""
 
 #: src/MonthlySalesPanel.tsx
