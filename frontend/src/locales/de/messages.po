@@ -13,18 +13,108 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/Panel.tsx:96
-msgid "Translated Text"
-msgstr "Übersetzter Text"
-
-#: src/Panel.tsx:97
-msgid "Translated text, provided by custom code!"
-msgstr "Übersetzter Text, bereitgestellt durch benutzerdefinierten Code!"
-
-#: src/Panel.tsx:98
-msgid "Translations are loaded automatically."
-msgstr "Übersetzungen werden automatisch geladen"
-
-#: src/Panel.tsx:99
-msgid "Fallback locale is used if no translation is available"
+#: src/MonthlySalesPanel.tsx
+#: src/MonthlySalesPanel.tsx
+msgid "This month"
 msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "No sales this month"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+#: src/MonthlySalesPanel.tsx
+msgid "Other ({otherCount})"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+#: src/MonthlySalesPanel.tsx
+msgid "Previous month"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+#: src/MonthlySalesPanel.tsx
+msgid "Next month"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Month to date"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Error"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Failed to load sales data from the server"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Some sales are excluded from these totals"
+msgstr ""
+
+#. placeholder {0}: warnings.missing_rates.join(', ')
+#: src/MonthlySalesPanel.tsx
+msgid "No exchange rate available for: {0}"
+msgstr ""
+
+#. placeholder {0}: warnings.unpriced_allocations
+#: src/MonthlySalesPanel.tsx
+msgid "Shipped items without a sale price this month: {0}"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Total sales"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Monthly average (previous 12 months)"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Last 12 months"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Click a bar to view that month"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Sales"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "12 month average"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Sales by customer"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "No customer"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Sales by product"
+msgstr ""
+
+#: src/MonthlySalesPanel.tsx
+msgid "Extra line items"
+msgstr ""
+
+#: src/Panel.tsx
+#~ msgid "Translated Text"
+#~ msgstr "Übersetzter Text"
+
+#: src/Panel.tsx
+#~ msgid "Translated text, provided by custom code!"
+#~ msgstr "Übersetzter Text, bereitgestellt durch benutzerdefinierten Code!"
+
+#: src/Panel.tsx
+#~ msgid "Translations are loaded automatically."
+#~ msgstr "Übersetzungen werden automatisch geladen"
+
+#: src/Panel.tsx
+#~ msgid "Fallback locale is used if no translation is available"
+#~ msgstr ""

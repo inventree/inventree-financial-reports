@@ -1,43 +1,34 @@
-"""API serializers for the FinancialReports plugin.
-
-In practice, you would define your custom serializers here.
-
-Ref: https://www.django-rest-framework.org/api-guide/serializers/
-"""
+"""API serializers for the FinancialReports plugin."""
 
 from rest_framework import serializers
 
+from InvenTree.helpers import current_date
 
-class ExampleSerializer(serializers.Serializer):
-    """Example serializer for the FinancialReports plugin.
 
-    This simply demonstrates how to create a serializer,
-    with a few example fields of different types.
+class MonthlyReportRequestSerializer(serializers.Serializer):
+    """Query parameters for a monthly report.
+
+    If not specified, the current month is used.
     """
 
-    class Meta:
-        """Meta options for this serializer."""
-
-        fields = [
-            "random_text",
-            "part_count",
-            "today",
-        ]
-
-    random_text = serializers.CharField(
-        max_length=100,
-        required=True,
-        label="Random Text",
-        help_text="A text field containing randomly generated data.",
+    year = serializers.IntegerField(
+        required=False, min_value=1900, max_value=9999, label="Year"
     )
 
-    part_count = serializers.IntegerField(
-        label="Number of Parts",
-        help_text="Total number of parts in the InvenTree database.",
+    month = serializers.IntegerField(
+        required=False, min_value=1, max_value=12, label="Month"
     )
 
-    today = serializers.DateField(
-        required=False,
-        label="Today",
-        help_text="The current date.",
-    )
+    def validate(self, attrs):
+        """Fill in defaults, and prevent requests for future months."""
+        attrs = super().validate(attrs)
+
+        today = current_date()
+
+        attrs.setdefault("year", today.year)
+        attrs.setdefault("month", today.month)
+
+        if (attrs["year"], attrs["month"]) > (today.year, today.month):
+            raise serializers.ValidationError("Cannot report on a future month")
+
+        return attrs

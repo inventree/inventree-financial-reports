@@ -2,20 +2,15 @@
 
 from plugin import InvenTreePlugin
 
-from plugin.mixins import (
-    ReportMixin,
-    ScheduleMixin,
-    SettingsMixin,
-    UrlsMixin,
-    UserInterfaceMixin,
-)
+from plugin.mixins import SettingsMixin, UrlsMixin, UserInterfaceMixin
+
+from users.permissions import check_user_role
+from users.ruleset import RuleSetEnum
 
 from . import PLUGIN_VERSION
 
 
 class FinancialReports(
-    ReportMixin,
-    ScheduleMixin,
     SettingsMixin,
     UrlsMixin,
     UserInterfaceMixin,
@@ -35,89 +30,69 @@ class FinancialReports(
     WEBSITE = "https://github.com/inventree/inventree-financial-reports"
     LICENSE = "MIT"
 
-    # Optionally specify supported InvenTree versions
-    # MIN_VERSION = '0.18.0'
-    # MAX_VERSION = '2.0.0'
-
-    # Scheduled tasks (from ScheduleMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/schedule/
-    SCHEDULED_TASKS = {
-        # Define your scheduled tasks here...
-    }
+    MIN_VERSION = "1.0.0"
 
     # Plugin settings (from SettingsMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/settings/
     SETTINGS = {
-        # Define your plugin settings here...
-        "CUSTOM_VALUE": {
-            "name": "Custom Value",
-            "description": "A custom value",
-            "validator": int,
-            "default": 42,
-        }
+        "USER_GROUP": {
+            "name": "Allowed Group",
+            "description": "Restrict financial reports to members of this group (leave blank to allow any user with the relevant order permissions)",
+            "model": "auth.group",
+        },
     }
 
-    # Custom report context (from ReportMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/report/
-    def add_label_context(
-        self, label_instance, model_instance, request, context, **kwargs
-    ):
-        """Add custom context data to a label rendering context."""
+    def user_has_access(self, user) -> bool:
+        """Check whether the user is allowed to view financial reports at all.
 
-        # Add custom context data to the label rendering context
-        context["foo"] = "label_bar"
+        Role-specific checks (e.g. sales order 'view') are applied separately.
+        """
+        if not user or not user.is_authenticated:
+            return False
 
-    def add_report_context(
-        self, report_instance, model_instance, request, context, **kwargs
-    ):
-        """Add custom context data to a report rendering context."""
+        if group := self.get_setting("USER_GROUP"):
+            return user.groups.filter(pk=group).exists()
 
-        # Add custom context data to the report rendering context
-        context["foo"] = "report_bar"
-
-    def report_callback(self, template, instance, report, request, **kwargs):
-        """Callback function called after a report is generated."""
-        ...
+        return True
 
     # Custom URL endpoints (from UrlsMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/urls/
     def setup_urls(self):
         """Configure custom URL endpoints for this plugin."""
         from django.urls import path
 
-        from .views import ExampleView
+        from .views import MonthlySalesView
 
         return [
-            # Provide path to a simple custom view - replace this with your own views
-            path("example/", ExampleView.as_view(), name="example-view"),
+            path(
+                "sales/monthly/",
+                MonthlySalesView.as_view(plugin=self),
+                name="monthly-sales",
+            ),
         ]
 
     # User interface elements (from UserInterfaceMixin)
-    # Ref: https://docs.inventree.org/en/latest/plugins/mixins/ui/
+    def get_ui_panels(self, request, context: dict, **kwargs):
+        """Return custom panels for the 'sales' and 'purchasing' index pages."""
+        user = request.user
 
-    # Custom dashboard items
-    def get_ui_dashboard_items(self, request, context: dict, **kwargs):
-        """Return a list of custom dashboard items to be rendered in the InvenTree user interface."""
-
-        # Example: only display for 'staff' users
-        if not request.user or not request.user.is_staff:
+        if not self.user_has_access(user):
             return []
 
-        items = []
+        target = (context or {}).get("target_model")
 
-        items.append({
-            "key": "financial-reports-dashboard",
-            "title": "Financial Reports Dashboard Item",
-            "description": "Custom dashboard item",
-            "icon": "ti:dashboard:outline",
-            "source": self.plugin_static_file(
-                "Dashboard.js:RenderFinancialReportsDashboardItem"
-            ),
-            "context": {
-                # Provide additional context data to the dashboard item
-                "settings": self.get_settings_dict(),
-                "bar": "foo",
-            },
-        })
+        panels = []
 
-        return items
+        if target == "sales" and check_user_role(user, RuleSetEnum.SALES_ORDER, "view"):
+            panels.append({
+                "key": "financial-reports-monthly-sales",
+                "title": "Monthly Sales",
+                "description": "Monthly sales summary",
+                "icon": "ti:report-money:outline",
+                "source": self.plugin_static_file(
+                    "MonthlySalesPanel.js:RenderMonthlySalesPanel"
+                ),
+                "context": {
+                    "api_url": f"/{self.base_url}sales/monthly/",
+                },
+            })
+
+        return panels

@@ -49,7 +49,7 @@ export default defineConfig({
       preserveEntrySignatures: "exports-only",
       input: [
         
-        './src/Dashboard.tsx',
+        './src/MonthlySalesPanel.tsx',
         
       ],
       output: [
